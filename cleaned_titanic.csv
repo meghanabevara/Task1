@@ -1,0 +1,41 @@
+# 1. Import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 2. Load dataset (make sure file is in same folder)
+df = pd.read_csv("Titanic-Dataset.csv")
+
+# 3. Basic info
+print(df.info())
+print(df.isnull().sum())
+
+# 4. Handle missing values
+df['Age'] = df['Age'].fillna(df['Age'].mean())
+df['Embarked'] = df['Embarked'].fillna(df['Embarked'].mode()[0])
+df.drop('Cabin', axis=1, inplace=True)
+
+# 5. Convert categorical to numerical
+df['Sex'] = df['Sex'].map({'male': 0, 'female': 1})
+df = pd.get_dummies(df, columns=['Embarked'], drop_first=True)
+
+# 6. Normalize / Standardize
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
+
+# 7. Detect outliers (boxplot)
+sns.boxplot(x=df['Fare'])
+plt.show()
+
+# 8. Remove outliers (example using IQR)
+Q1 = df['Fare'].quantile(0.25)
+Q3 = df['Fare'].quantile(0.75)
+IQR = Q3 - Q1
+
+df = df[(df['Fare'] >= Q1 - 1.5*IQR) & (df['Fare'] <= Q3 + 1.5*IQR)]
+
+# Final cleaned data
+print(df.head())
